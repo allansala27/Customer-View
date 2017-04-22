@@ -45,21 +45,27 @@ var userBuy = function () {
 		//store answers in vars
 		var id = answers.product;
 		var amount = answers.quantity;
-		var newQuantity = getNewQuantity(id, amount);
-
-		//update values in table
-		connection.query('UPDATE products SET stock_quantity = ? WHERE item_id = ?', [newQuantity,id], function(){
-			
-		});
+		updateQuantity(id, amount);
 	})
 }
 
-var getNewQuantity = function(item, number) {
+var updateQuantity = function(item, number) {
 	connection.query('SELECT stock_quantity FROM products WHERE item_id = ?', [item], function (err, res) {
 		if(err)
 			throw err;
 		else {
-			return (res[0].stock_quantity) - number;
+			if(number < res[0].stock_quantity) {
+				var newQuantity = (res[0].stock_quantity) - number;
+
+				//update values in table
+				connection.query('UPDATE products SET ? WHERE item_id = ?', [{stock_quantity: newQuantity} ,item], function(){
+					console.log("Here are your items, GET OUTTA HERE!");
+				});
+			}
+			else {
+				console.log("We dont have that amount..");
+				userBuy();
+			}	
 		}
 	})
 }
